@@ -1,64 +1,78 @@
-console.log("inciando servidor")
+console.log("Inicio de programa")
+
 console.log(process.argv)
 const args = process.argv.slice(2);
-const productosApi = await obtener_pjs()
 
-
-switch(productosApi){
-               //console.log("Toma un dato")
-    case "GET":
-        console.log("GET");
-        if(Array.isArray(productosApi)){
-            console.log(`Recibimos ${productosApi} satisfactoriamente`)
-        }else{
-            console.log("Comando GET incompleto")
-        }
-
-        break;
-    case "POST":
-        console.log("POST");
-        if(args[1]){
-            console.log(`Recibimos ${args[1]} satisfactoriamente`)
-        }else{
-            console.log("Comando POST incompleto")
-        }
-        break;
-    case "PUT":
-        console.log("PUT");
-        if(args[1]){
-            console.log(`Editamos dato con id: ${args[1]} satisfactoriamente`)
-        }else{
-            console.log("Comando PUT incompleto, el id es necesario")
-        }
-        break;
-    case "DELETE":
-        console.log("DELETE");
-        if(args[1]){
-            console.log(`Eliminamos dato con id: ${args[1]} satisfactoriamente`)
-        }else{
-            console.log("Comando DELETE incompleto, el id es necesario")
-        }
-        break;
-    default:
-        console.log("Comando incompleto o invalido")
-}
-
-async function obtener_pjs() {
+async function obtenerProductos(url) {
     try{
-        const response = await fetch("https://rickandmortyapi.com/api/character", {method: "GET"});
-        if(response.ok){
-            const data = await response.json();
-            const primeros_pjs = data.results.slice(0,5)
-            //console.log("Dentro del fetch",primeros_pjs)
-            return primeros_pjs
-        }
-    }catch (error){
+        const response = await fetch(`https://fakestoreapi.com/${url}`)
+        const data = await response.json()
+        return data
+    }catch(error){
         console.log(error)
     }
 }
 
+async function eliminarProducto(producto){
+    try{
+        const response = await fetch(`https://fakestoreapi.com/${producto}`,{
+            method: "DELETE"
+        })
+        const data = await response.json()
+        return data
+    }catch(error){
+        console.log(error)
+    }
+}
 
-console.log("Por fuera de la función",productosApi)
+async function crearProducto(producto){
+    try{
+        const response = await fetch("https://fakestoreapi.com/products",{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(producto)
+        })
+        if(response.ok){
+            const data = await response.json();
+            console.log(data)
+            console.log("Id del producto creado: ", data.id)
+        }
+    }catch(error){
+        console.log(error)
+    }
+}
+
+switch(args[0]){
+    case "GET":
+        console.log(args[0]);
+        if(args[1] && args[1].startsWith("products")){
+            const productos = await obtenerProductos(args[1])
+            console.log(productos)
+        }else{
+            console.log("Comando incorrecto");
+        }
+        break;
+    case "POST":
+        console.log(args[0]);
+        if(args[1] && args[2] && args[3] && args[4] && args[1] == "products"){
+            await crearProducto({title: args[2], price: args[3], category: args[4]})
+            console.log("Prodcuto creado")
+        }else{
+            console.log("Comando incompleto o incorrecto")
+        }
+        break;
+    case "DELETE":
+        console.log(args[0]);
+        if(args[1].startsWith("products/") && args[1].length > 9){
+            const response = await eliminarProducto(args[1]);
+            console.log("Producto eliminado ", response)
+        }else{
+            console.log("Comando incompleto o incorrecto")
+        }
+        break;
+    default:
+        console.log("Comando incorrecto") 
+}
 
 
 
